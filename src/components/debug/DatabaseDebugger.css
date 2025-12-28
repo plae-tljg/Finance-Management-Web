@@ -415,3 +415,36 @@
 .logs-container::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+
+/* 导入和添加功能 */
+.import-add-section {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.import-add-section h2 {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+  font-size: 1.5rem;
+}
+
+.add-buttons {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-top: 15px;
+}
+
+.card-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.card-actions .btn-export {
+  flex: 1;
+  min-width: 80px;
+}

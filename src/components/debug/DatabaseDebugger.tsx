@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useDatabaseSetup } from '../../hooks/useDatabaseSetup';
+import { AddCategoryForm, AddBudgetForm, AddTransactionForm, AddBankBalanceForm } from '../forms';
+import { ImportComponent } from '../import';
+import type { ImportResult } from '../../services/import';
 import './DatabaseDebugger.css';
 
 interface DatabaseInfo {
@@ -24,6 +27,9 @@ const DatabaseDebugger: React.FC = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
+  const [showAddForm, setShowAddForm] = useState<{
+    type: 'category' | 'budget' | 'transaction' | 'bankBalance' | null;
+  }>({ type: null });
 
   // 使用 hook 获取数据库功能
   const { 
@@ -144,6 +150,38 @@ const DatabaseDebugger: React.FC = () => {
     addLog(`📤 导出 ${tableName} 数据完成`);
   };
 
+  const handleExportAll = () => {
+    const allData = {
+      categories: dbInfo.categories,
+      budgets: dbInfo.budgets,
+      transactions: dbInfo.transactions,
+      bankBalances: dbInfo.bankBalances
+    };
+    const jsonData = JSON.stringify(allData, null, 2);
+    const blob = new Blob([jsonData], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `finance-data-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    addLog('📤 导出所有数据完成');
+  };
+
+  const handleAddSuccess = () => {
+    setShowAddForm({ type: null });
+    loadDatabaseInfo();
+    addLog('✅ 添加记录成功');
+  };
+
+  const handleImportComplete = (result: ImportResult) => {
+    loadDatabaseInfo();
+    addLog(result.message);
+    if (result.errors.length > 0) {
+      result.errors.forEach(error => addLog(`⚠️ ${error}`));
+    }
+  };
+
   return (
     <div className="database-debugger">
       <header className="debugger-header">
@@ -162,6 +200,13 @@ const DatabaseDebugger: React.FC = () => {
             disabled={isLoading}
           >
             🧪 运行测试
+          </button>
+          <button 
+            onClick={handleExportAll} 
+            className="btn btn-primary"
+            disabled={isLoading}
+          >
+            📤 导出所有
           </button>
           <button 
             onClick={handleResetDatabase} 
@@ -220,6 +265,120 @@ const DatabaseDebugger: React.FC = () => {
           </div>
         </section>
 
+        {/* 导入和添加功能 */}
+        <section className="import-add-section">
+          <h2>📥 导入数据</h2>
+          <ImportComponent onImportComplete={handleImportComplete} />
+          
+          <h2 style={{ marginTop: '30px' }}>➕ 添加记录</h2>
+          <div className="add-buttons">
+            <button 
+              onClick={() => setShowAddForm({ type: 'category' })}
+              className="btn btn-primary"
+            >
+              ➕ 添加分类
+            </button>
+            <button 
+              onClick={() => setShowAddForm({ type: 'budget' })}
+              className="btn btn-primary"
+            >
+              ➕ 添加预算
+            </button>
+            <button 
+              onClick={() => setShowAddForm({ type: 'transaction' })}
+              className="btn btn-primary"
+            >
+              ➕ 添加交易
+            </button>
+            <button 
+              onClick={() => setShowAddForm({ type: 'bankBalance' })}
+              className="btn btn-primary"
+            >
+              ➕ 添加银行余额
+            </button>
+          </div>
+
+          {showAddForm.type === 'category' && (
+            <div className="modal-overlay" onClick={() => setShowAddForm({ type: null })}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h2>添加分类</h2>
+                  <button 
+                    className="modal-close"
+                    onClick={() => setShowAddForm({ type: null })}
+                  >
+                    ×
+                  </button>
+                </div>
+                <AddCategoryForm 
+                  onSuccess={handleAddSuccess}
+                  onCancel={() => setShowAddForm({ type: null })}
+                />
+              </div>
+            </div>
+          )}
+
+          {showAddForm.type === 'budget' && (
+            <div className="modal-overlay" onClick={() => setShowAddForm({ type: null })}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h2>添加预算</h2>
+                  <button 
+                    className="modal-close"
+                    onClick={() => setShowAddForm({ type: null })}
+                  >
+                    ×
+                  </button>
+                </div>
+                <AddBudgetForm 
+                  onSuccess={handleAddSuccess}
+                  onCancel={() => setShowAddForm({ type: null })}
+                />
+              </div>
+            </div>
+          )}
+
+          {showAddForm.type === 'transaction' && (
+            <div className="modal-overlay" onClick={() => setShowAddForm({ type: null })}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h2>添加交易</h2>
+                  <button 
+                    className="modal-close"
+                    onClick={() => setShowAddForm({ type: null })}
+                  >
+                    ×
+                  </button>
+                </div>
+                <AddTransactionForm 
+                  onSuccess={handleAddSuccess}
+                  onCancel={() => setShowAddForm({ type: null })}
+                />
+              </div>
+            </div>
+          )}
+
+          {showAddForm.type === 'bankBalance' && (
+            <div className="modal-overlay" onClick={() => setShowAddForm({ type: null })}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h2>添加银行余额</h2>
+                  <button 
+                    className="modal-close"
+                    onClick={() => setShowAddForm({ type: null })}
+                  >
+                    ×
+                  </button>
+                </div>
+                <AddBankBalanceForm 
+                  onSuccess={handleAddSuccess}
+                  onCancel={() => setShowAddForm({ type: null })}
+                />
+              </div>
+            </div>
+          )}
+        </section>
+
         {/* 数据概览 */}
         <section className="data-overview">
           <h2>📈 数据概览</h2>
@@ -227,42 +386,74 @@ const DatabaseDebugger: React.FC = () => {
             <div className="overview-card">
               <h3>分类</h3>
               <p className="count">{dbInfo.categories.length}</p>
-              <button 
-                onClick={() => handleExportData('categories', dbInfo.categories)}
-                className="btn-export"
-              >
-                📤 导出
-              </button>
+              <div className="card-actions">
+                <button 
+                  onClick={() => setShowAddForm({ type: 'category' })}
+                  className="btn-export"
+                >
+                  ➕ 添加
+                </button>
+                <button 
+                  onClick={() => handleExportData('categories', dbInfo.categories)}
+                  className="btn-export"
+                >
+                  📤 导出
+                </button>
+              </div>
             </div>
             <div className="overview-card">
               <h3>预算</h3>
               <p className="count">{dbInfo.budgets.length}</p>
-              <button 
-                onClick={() => handleExportData('budgets', dbInfo.budgets)}
-                className="btn-export"
-              >
-                📤 导出
-              </button>
+              <div className="card-actions">
+                <button 
+                  onClick={() => setShowAddForm({ type: 'budget' })}
+                  className="btn-export"
+                >
+                  ➕ 添加
+                </button>
+                <button 
+                  onClick={() => handleExportData('budgets', dbInfo.budgets)}
+                  className="btn-export"
+                >
+                  📤 导出
+                </button>
+              </div>
             </div>
             <div className="overview-card">
               <h3>交易</h3>
               <p className="count">{dbInfo.transactions.length}</p>
-              <button 
-                onClick={() => handleExportData('transactions', dbInfo.transactions)}
-                className="btn-export"
-              >
-                📤 导出
-              </button>
+              <div className="card-actions">
+                <button 
+                  onClick={() => setShowAddForm({ type: 'transaction' })}
+                  className="btn-export"
+                >
+                  ➕ 添加
+                </button>
+                <button 
+                  onClick={() => handleExportData('transactions', dbInfo.transactions)}
+                  className="btn-export"
+                >
+                  📤 导出
+                </button>
+              </div>
             </div>
             <div className="overview-card">
               <h3>银行余额</h3>
               <p className="count">{dbInfo.bankBalances.length}</p>
-              <button 
-                onClick={() => handleExportData('bank_balances', dbInfo.bankBalances)}
-                className="btn-export"
-              >
-                📤 导出
-              </button>
+              <div className="card-actions">
+                <button 
+                  onClick={() => setShowAddForm({ type: 'bankBalance' })}
+                  className="btn-export"
+                >
+                  ➕ 添加
+                </button>
+                <button 
+                  onClick={() => handleExportData('bank_balances', dbInfo.bankBalances)}
+                  className="btn-export"
+                >
+                  📤 导出
+                </button>
+              </div>
             </div>
           </div>
         </section>

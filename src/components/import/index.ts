@@ -1,0 +1,2 @@
+export { ImportComponent } from './ImportComponent';
+

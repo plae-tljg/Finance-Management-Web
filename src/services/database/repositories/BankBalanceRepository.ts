@@ -45,7 +45,17 @@ export class BankBalanceRepository implements BaseRepository<BankBalance> {
       BankBalanceQueries.INSERT,
       [balance.year, balance.month, balance.openingBalance, balance.closingBalance]
     );
-    return result.rows._array[0];
+    
+    if (!result.insertId) {
+      throw new Error('Failed to create bank balance');
+    }
+
+    const created = await this.findById(result.insertId);
+    if (!created) {
+      throw new Error('Failed to retrieve created bank balance');
+    }
+    
+    return created;
   }
 
   async update(id: number, balance: Partial<BankBalance>): Promise<boolean> {
