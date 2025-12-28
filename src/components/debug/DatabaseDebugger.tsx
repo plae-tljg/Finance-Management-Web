@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import DatabaseService from '../../services/database/DatabaseService';
 import { useDatabaseSetup } from '../../hooks/useDatabaseSetup';
 import './DatabaseDebugger.css';
 
@@ -29,7 +28,6 @@ const DatabaseDebugger: React.FC = () => {
   // 使用 hook 获取数据库功能
   const { 
     isReady, 
-    isLoading: dbLoading, 
     error: dbError, 
     database, 
     isInitialized, 

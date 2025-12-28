@@ -1,4 +1,3 @@
-import React from 'react';
 import DatabaseDebugger from './components/debug/DatabaseDebugger';
 import './App.css';
 

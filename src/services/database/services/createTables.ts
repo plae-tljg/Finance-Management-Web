@@ -10,7 +10,7 @@ const repositories = [
     TransactionRepository
 ]
 
-export const createTables = async (db: Database, insertSampleData: boolean = false) => {
+export const createTables = async (_db: Database, insertSampleData: boolean = false) => {
     // 使用DatabaseService实例作为QueryExecutor
     const dbService = DatabaseService.getInstance();
     for (const RepositoryClass of repositories) {
@@ -50,7 +50,7 @@ export const insertSampleDataWithCheck = async (db: Database) => {
     }
 }
 
-export const createIndex = async (db: Database) => {
+export const createIndex = async (_db: Database) => {
     const dbService = DatabaseService.getInstance();
     for (const RepositoryClass of repositories) {
         const repository = new RepositoryClass(dbService);

@@ -1,2 +1,2 @@
-export { useTableCreation } from './useDatabaseSetup';
+export { useDatabaseSetup } from './useDatabaseSetup';
 export type { TableSchema } from './useDatabaseSetup';
