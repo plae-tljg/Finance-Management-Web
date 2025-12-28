@@ -140,7 +140,9 @@ The database is automatically initialized when the app loads using the `useDatab
 
 ## 📝 License
 
-This project is private and not licensed for public use.
+```bash
+pass
+```
 
 ## 🤝 Contributing
 
