@@ -52,13 +52,14 @@ export class TransactionRepository implements BaseRepository<Transaction> {
       [
         data.amount,
         data.categoryId,
+        data.accountId,
         data.budgetId,
         data.description,
         data.date,
         data.type
       ]
     );
-    
+
     return {
       ...data,
       id: result.insertId!,
@@ -110,6 +111,7 @@ export class TransactionRepository implements BaseRepository<Transaction> {
       [
         data.amount,
         data.categoryId,
+        data.accountId,
         data.budgetId,
         data.description,
         data.date,

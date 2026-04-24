@@ -14,47 +14,66 @@ export interface Budget {
 };
 
 // 可选：添加一些默认预算, sample data to insert
+const currentYear = new Date().getFullYear();
+const currentMonth = new Date().getMonth() + 1;
+const currentMonthStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+
 export const SAMPLE_BUDGETS: Omit<Budget, 'id' | 'createdAt' | 'updatedAt'>[] = [
     {
-      name: '餐饮',
+      name: '餐饮预算',
       categoryId: 1,
-      amount: 2000,
+      amount: 3000,
       period: 'monthly',
-      startDate: (() => {
-        const now = new Date();
-        return new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-      })(),
-      endDate: (() => {
-        const now = new Date();
-        return new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).toISOString();
-      })(),
-      month: (() => {
-        const now = new Date();
-        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-      })(),
+      startDate: `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`,
+      endDate: `${currentYear}-${String(currentMonth).padStart(2, '0')}-31`,
+      month: currentMonthStr,
       isRegular: true,
       isBudgetExceeded: false
     },
     {
-        name: '交通',
+        name: '交通预算',
         categoryId: 2,
-        amount: 1000,
+        amount: 800,
         period: 'monthly',
-        startDate: (() => {
-            const now = new Date();
-            return new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-          })(),
-          endDate: (() => {
-            const now = new Date();
-            return new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).toISOString();
-          })(),
-          month: (() => {
-            const now = new Date();
-            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-          })(),
+        startDate: `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`,
+        endDate: `${currentYear}-${String(currentMonth).padStart(2, '0')}-31`,
+        month: currentMonthStr,
         isRegular: true,
         isBudgetExceeded: false
-    }
+    },
+    {
+        name: '购物预算',
+        categoryId: 3,
+        amount: 2000,
+        period: 'monthly',
+        startDate: `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`,
+        endDate: `${currentYear}-${String(currentMonth).padStart(2, '0')}-31`,
+        month: currentMonthStr,
+        isRegular: true,
+        isBudgetExceeded: false
+    },
+    {
+        name: '娱乐预算',
+        categoryId: 4,
+        amount: 1000,
+        period: 'monthly',
+        startDate: `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`,
+        endDate: `${currentYear}-${String(currentMonth).padStart(2, '0')}-31`,
+        month: currentMonthStr,
+        isRegular: true,
+        isBudgetExceeded: false
+    },
+    {
+        name: '家用预算',
+        categoryId: 6,
+        amount: 4000,
+        period: 'monthly',
+        startDate: `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`,
+        endDate: `${currentYear}-${String(currentMonth).padStart(2, '0')}-31`,
+        month: currentMonthStr,
+        isRegular: true,
+        isBudgetExceeded: false
+    },
 ];
 
 export const BudgetFields = {

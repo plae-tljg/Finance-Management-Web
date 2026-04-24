@@ -37,6 +37,14 @@ export const DEFAULT_CATEGORIES: Omit<Category, 'id' | 'createdAt' | 'updatedAt'
       isActive: true
     },
     {
+      name: '娱乐',
+      icon: '🎮',
+      type: 'expense',
+      sortOrder: 4,
+      isDefault: true,
+      isActive: true
+    },
+    {
       name: '工资',
       icon: '💰',
       type: 'income',
@@ -46,17 +54,25 @@ export const DEFAULT_CATEGORIES: Omit<Category, 'id' | 'createdAt' | 'updatedAt'
     },
     {
       name: '家用',
-      icon: '🧓',
+      icon: '🏠',
       type: 'expense',
       sortOrder: 5,
       isDefault: true,
       isActive: true
     },
     {
-      name: '账单',
-      icon: '🧾',
+      name: '医疗',
+      icon: '💊',
       type: 'expense',
       sortOrder: 6,
+      isDefault: true,
+      isActive: true
+    },
+    {
+      name: '奖金',
+      icon: '🎁',
+      type: 'income',
+      sortOrder: 2,
       isDefault: true,
       isActive: true
     }

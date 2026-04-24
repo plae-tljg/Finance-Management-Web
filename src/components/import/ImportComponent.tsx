@@ -11,30 +11,39 @@ export const ImportComponent: React.FC<ImportComponentProps> = ({ onImportComple
   const [isImporting, setIsImporting] = React.useState(false);
   const [result, setResult] = React.useState<ImportResult | null>(null);
 
+  console.log('[ImportComponent] Rendering, isImporting:', isImporting);
+
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      console.log('[ImportComponent] No file selected');
+      return;
+    }
 
+    console.log('[ImportComponent] File selected:', file.name);
     setIsImporting(true);
     setResult(null);
 
     try {
+      console.log('[ImportComponent] Calling importService.importFromFile...');
       const importResult = await importService.importFromFile(file);
+      console.log('[ImportComponent] Import result:', importResult);
       setResult(importResult);
-      
+
       if (onImportComplete) {
+        console.log('[ImportComponent] Calling onImportComplete callback');
         onImportComplete(importResult);
       }
     } catch (error) {
+      console.error('[ImportComponent] Import failed:', error);
       setResult({
         success: false,
-        message: `导入失败: ${error instanceof Error ? error.message : '未知错误'}`,
-        imported: { categories: 0, budgets: 0, transactions: 0, bankBalances: 0 },
-        errors: [error instanceof Error ? error.message : '未知错误']
+        message: `Import failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        imported: { categories: 0, budgets: 0, transactions: 0, accounts: 0, accountBalances: 0 },
+        errors: [error instanceof Error ? error.message : 'Unknown error']
       });
     } finally {
       setIsImporting(false);
-      // 重置文件输入
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -42,6 +51,7 @@ export const ImportComponent: React.FC<ImportComponentProps> = ({ onImportComple
   };
 
   const handleImportClick = () => {
+    console.log('[ImportComponent] Import button clicked');
     fileInputRef.current?.click();
   };
 
@@ -52,7 +62,7 @@ export const ImportComponent: React.FC<ImportComponentProps> = ({ onImportComple
         disabled={isImporting}
         className="btn btn-primary"
       >
-        {isImporting ? '导入中...' : '📥 导入数据'}
+        {isImporting ? 'Importing...' : '📥 Import Data'}
       </button>
       <input
         ref={fileInputRef}
@@ -61,25 +71,28 @@ export const ImportComponent: React.FC<ImportComponentProps> = ({ onImportComple
         onChange={handleFileSelect}
         style={{ display: 'none' }}
       />
-      
+
       {result && (
         <div className={`import-result ${result.success ? 'success' : 'error'}`}>
           <div className="result-message">{result.message}</div>
           {result.imported.categories > 0 && (
-            <div>分类: {result.imported.categories} 条</div>
+            <div>Categories: {result.imported.categories}</div>
+          )}
+          {result.imported.accounts > 0 && (
+            <div>Accounts: {result.imported.accounts}</div>
+          )}
+          {result.imported.accountBalances > 0 && (
+            <div>Account Balances: {result.imported.accountBalances}</div>
           )}
           {result.imported.budgets > 0 && (
-            <div>预算: {result.imported.budgets} 条</div>
+            <div>Budgets: {result.imported.budgets}</div>
           )}
           {result.imported.transactions > 0 && (
-            <div>交易: {result.imported.transactions} 条</div>
-          )}
-          {result.imported.bankBalances > 0 && (
-            <div>银行余额: {result.imported.bankBalances} 条</div>
+            <div>Transactions: {result.imported.transactions}</div>
           )}
           {result.errors.length > 0 && (
             <div className="import-errors">
-              <strong>错误:</strong>
+              <strong>Errors:</strong>
               <ul>
                 {result.errors.map((error, index) => (
                   <li key={index}>{error}</li>
@@ -92,4 +105,3 @@ export const ImportComponent: React.FC<ImportComponentProps> = ({ onImportComple
     </div>
   );
 };
-

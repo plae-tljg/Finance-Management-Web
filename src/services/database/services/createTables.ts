@@ -1,17 +1,17 @@
-import { CategoryRepository, BudgetRepository, BankBalanceRepository, TransactionRepository } from '../repositories';
+import { CategoryRepository, BudgetRepository, TransactionRepository, AccountRepository, AccountBalanceRepository } from '../repositories';
 import { checkIfDataExists } from './checkTables';
 import { type Database } from 'sql.js';
 import DatabaseService from '../DatabaseService';
 
 const repositories = [
     CategoryRepository,
+    AccountRepository,
+    AccountBalanceRepository,
     BudgetRepository,
-    BankBalanceRepository,
     TransactionRepository
 ]
 
 export const createTables = async (_db: Database, insertSampleData: boolean = false) => {
-    // 使用DatabaseService实例作为QueryExecutor
     const dbService = DatabaseService.getInstance();
     for (const RepositoryClass of repositories) {
         const repository = new RepositoryClass(dbService);
@@ -74,5 +74,5 @@ export const initializeDatabaseFull = async (db: Database) => {
     console.log(`✅ 样例数据插入完成`);
 
     console.log(`✅ 数据库初始化完成`);
-    
+
 }

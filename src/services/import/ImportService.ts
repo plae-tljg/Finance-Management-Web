@@ -2,17 +2,20 @@ import DatabaseService from '../database/DatabaseService';
 import { CategoryRepository } from '../database/repositories/CategoryRepository';
 import { BudgetRepository } from '../database/repositories/BudgetRepository';
 import { TransactionRepository } from '../database/repositories/TransactionRepository';
-import { BankBalanceRepository } from '../database/repositories/BankBalanceRepository';
+import { AccountRepository } from '../database/repositories/AccountRepository';
+import { AccountBalanceRepository } from '../database/repositories/AccountBalanceRepository';
 import type { Category } from '../database/schemas/Category';
 import type { Budget } from '../database/schemas/Budget';
 import type { Transaction } from '../database/schemas/Transaction';
-import type { BankBalance } from '../database/schemas/BankBalance';
+import type { Account } from '../database/schemas/Account';
+import type { AccountBalance } from '../database/schemas/AccountBalance';
 
 export interface ImportData {
   categories?: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>[];
   budgets?: Omit<Budget, 'id' | 'createdAt' | 'updatedAt'>[];
   transactions?: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>[];
-  bankBalances?: Omit<BankBalance, 'id' | 'createdAt' | 'updatedAt'>[];
+  accounts?: Omit<Account, 'id' | 'createdAt' | 'updatedAt'>[];
+  accountBalances?: Omit<AccountBalance, 'id' | 'createdAt' | 'updatedAt'>[];
 }
 
 export interface ImportResult {
@@ -22,7 +25,8 @@ export interface ImportResult {
     categories: number;
     budgets: number;
     transactions: number;
-    bankBalances: number;
+    accounts: number;
+    accountBalances: number;
   };
   errors: string[];
 }
@@ -39,106 +43,148 @@ class ImportService {
     return ImportService.instance;
   }
 
-  /**
-   * 从 JSON 文件导入数据
-   */
   async importFromFile(file: File): Promise<ImportResult> {
     try {
+      console.log('[ImportService] Reading file:', file.name);
       const text = await file.text();
+      console.log('[ImportService] File content length:', text.length);
       const data: ImportData = JSON.parse(text);
+      console.log('[ImportService] Parsed JSON data');
       return await this.importData(data);
     } catch (error) {
+      console.error('[ImportService] Import from file failed:', error);
       return {
         success: false,
-        message: `导入失败: ${error instanceof Error ? error.message : '未知错误'}`,
-        imported: { categories: 0, budgets: 0, transactions: 0, bankBalances: 0 },
-        errors: [error instanceof Error ? error.message : '未知错误']
+        message: `Import failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        imported: { categories: 0, budgets: 0, transactions: 0, accounts: 0, accountBalances: 0 },
+        errors: [error instanceof Error ? error.message : 'Unknown error']
       };
     }
   }
 
-  /**
-   * 导入数据到数据库
-   */
   async importData(data: ImportData): Promise<ImportResult> {
     const dbService = DatabaseService.getInstance();
     const db = dbService.getDatabase();
-    
+
     if (!db) {
-      throw new Error('数据库未初始化');
+      console.error('[ImportService] Database not initialized');
+      throw new Error('Database not initialized');
     }
+
+    console.log('[ImportService] Starting import...');
+
+    console.log('[ImportService] Clearing all existing data...');
+    db.run('DELETE FROM transactions');
+    db.run('DELETE FROM budgets');
+    db.run('DELETE FROM account_balances');
+    db.run('DELETE FROM accounts');
+    db.run('DELETE FROM categories');
+    console.log('[ImportService] All tables cleared');
+
+    console.log('[ImportService] Starting import...');
 
     const result: ImportResult = {
       success: true,
-      message: '导入完成',
-      imported: { categories: 0, budgets: 0, transactions: 0, bankBalances: 0 },
+      message: 'Import complete',
+      imported: { categories: 0, budgets: 0, transactions: 0, accounts: 0, accountBalances: 0 },
       errors: []
     };
 
     try {
-      // 导入类别
       if (data.categories && data.categories.length > 0) {
+        console.log('[ImportService] Importing categories:', data.categories.length);
         const categoryRepo = new CategoryRepository(dbService);
         for (const category of data.categories) {
           try {
             await categoryRepo.create(category);
             result.imported.categories++;
           } catch (error) {
-            result.errors.push(`导入类别失败: ${error instanceof Error ? error.message : '未知错误'}`);
+            console.error('[ImportService] Failed to import category:', category.name, error);
+            result.errors.push(`Failed to import category: ${error instanceof Error ? error.message : 'Unknown error'}`);
           }
         }
+        console.log('[ImportService] Categories imported:', result.imported.categories);
       }
 
-      // 导入预算
+      if (data.accounts && data.accounts.length > 0) {
+        console.log('[ImportService] Importing accounts:', data.accounts.length);
+        const accountRepo = new AccountRepository(dbService);
+        for (const account of data.accounts) {
+          try {
+            await accountRepo.create(account);
+            result.imported.accounts++;
+          } catch (error) {
+            console.error('[ImportService] Failed to import account:', account.name, error);
+            result.errors.push(`Failed to import account: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          }
+        }
+        console.log('[ImportService] Accounts imported:', result.imported.accounts);
+      }
+
+      if (data.accountBalances && data.accountBalances.length > 0) {
+        console.log('[ImportService] Importing account balances:', data.accountBalances.length);
+        const accountBalanceRepo = new AccountBalanceRepository(dbService);
+        for (const balance of data.accountBalances) {
+          try {
+            await accountBalanceRepo.upsert(balance);
+            result.imported.accountBalances++;
+          } catch (error) {
+            console.error('[ImportService] Failed to import account balance:', balance, error);
+            result.errors.push(`Failed to import account balance: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          }
+        }
+        console.log('[ImportService] Account balances imported:', result.imported.accountBalances);
+      }
+
       if (data.budgets && data.budgets.length > 0) {
+        console.log('[ImportService] Importing budgets:', data.budgets.length);
         const budgetRepo = new BudgetRepository(dbService);
         for (const budget of data.budgets) {
           try {
             await budgetRepo.create(budget);
             result.imported.budgets++;
           } catch (error) {
-            result.errors.push(`导入预算失败: ${error instanceof Error ? error.message : '未知错误'}`);
+            console.error('[ImportService] Failed to import budget:', budget.name, error);
+            result.errors.push(`Failed to import budget: ${error instanceof Error ? error.message : 'Unknown error'}`);
           }
         }
+        console.log('[ImportService] Budgets imported:', result.imported.budgets);
       }
 
-      // 导入交易
       if (data.transactions && data.transactions.length > 0) {
+        console.log('[ImportService] Importing transactions:', data.transactions.length);
         const transactionRepo = new TransactionRepository(dbService);
         for (const transaction of data.transactions) {
           try {
             await transactionRepo.create(transaction);
             result.imported.transactions++;
           } catch (error) {
-            result.errors.push(`导入交易失败: ${error instanceof Error ? error.message : '未知错误'}`);
+            console.error('[ImportService] Failed to import transaction:', transaction, error);
+            result.errors.push(`Failed to import transaction: ${error instanceof Error ? error.message : 'Unknown error'}`);
           }
         }
+        console.log('[ImportService] Transactions imported:', result.imported.transactions);
       }
 
-      // 导入银行余额
-      if (data.bankBalances && data.bankBalances.length > 0) {
-        const bankBalanceRepo = new BankBalanceRepository(dbService);
-        for (const balance of data.bankBalances) {
-          try {
-            await bankBalanceRepo.create(balance);
-            result.imported.bankBalances++;
-          } catch (error) {
-            result.errors.push(`导入银行余额失败: ${error instanceof Error ? error.message : '未知错误'}`);
-          }
-        }
-      }
+      const totalImported = result.imported.categories + result.imported.budgets + result.imported.transactions + result.imported.accounts + result.imported.accountBalances;
 
       if (result.errors.length > 0) {
         result.success = false;
-        result.message = `部分导入失败，已导入 ${result.imported.categories + result.imported.budgets + result.imported.transactions + result.imported.bankBalances} 条记录`;
+        result.message = `Partial import: ${totalImported} records imported, ${result.errors.length} errors`;
+        console.warn('[ImportService] Import completed with errors:', result.errors);
       } else {
-        result.message = `成功导入 ${result.imported.categories + result.imported.budgets + result.imported.transactions + result.imported.bankBalances} 条记录`;
+        result.message = `Successfully imported ${totalImported} records`;
+        console.log('[ImportService] Import successful:', totalImported, 'records');
       }
     } catch (error) {
       result.success = false;
-      result.message = `导入失败: ${error instanceof Error ? error.message : '未知错误'}`;
-      result.errors.push(error instanceof Error ? error.message : '未知错误');
+      result.message = `Import failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      result.errors.push(error instanceof Error ? error.message : 'Unknown error');
+      console.error('[ImportService] Import failed:', error);
     }
+
+    dbService.saveToStorage();
+    console.log('[ImportService] Database saved to storage');
 
     return result;
   }
@@ -146,4 +192,3 @@ class ImportService {
 
 export default ImportService;
 export const importService = ImportService.getInstance();
-
