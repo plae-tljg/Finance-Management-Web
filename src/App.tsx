@@ -10,13 +10,15 @@ import Reports from './pages/Reports';
 import Categories from './pages/Categories';
 import Debugger from './pages/Debugger';
 
+const BASE_PATH = (import.meta.env.VITE_BASE_PATH as string) || (import.meta.env.PROD ? '/Finance-Management-Web' : '/');
+
 function App() {
     return (
         <ErrorBoundary>
             <DatabaseProvider>
                 <RepositoryProvider>
                     <AppStateProvider>
-                        <BrowserRouter>
+                        <BrowserRouter basename={BASE_PATH}>
                             <Routes>
                                 <Route path="/" element={<Layout />}>
                                     <Route index element={<Dashboard />} />
